@@ -1,4 +1,6 @@
 import pygame
+import sys
+import random
 
 # Inicializáljuk a Pygame-et
 pygame.init()
@@ -10,24 +12,96 @@ width, height = 800, 600
 screen = pygame.display.set_mode((width, height))
 
 # Ablak címe
-pygame.display.set_caption("Zöldes-Kékes Háttér")
+pygame.display.set_caption("Snake Játék")
 
-# Háttérszín beállítása
-background_color = (0, 128, 128)  # Zöldes-kékes szín RGB kóddal
+# Színek
+background_color = (0, 0, 0)  # Fekete háttérszín
+snake_color = (0, 255, 0)  # Zöld szín a kígyónak
+food_color = (255, 0, 0)  # Piros szín az ételnek
 
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+# Snake kezdeti pozíció
+snake_x, snake_y = width // 2, height // 2
+
+# Snake mozgás irányai
+snake_dx, snake_dy = 0, 0
+
+# Snake hossza és teste
+snake_length = 1
+snake_body = [(snake_x, snake_y)]
+
+# Étel pozíciója
+food_x, food_y = random.randint(0, width - 20), random.randint(0, height - 20)
+
+# Játéksebesség
+game_speed = 75  # A zöld kocka sebessége most 50% -kal lassabb
+
+def draw_snake(snake_body):
+    for segment in snake_body:
+        pygame.draw.rect(screen, snake_color, pygame.Rect(segment[0], segment[1], 20, 20))
+
+def main():
+    global snake_x, snake_y, snake_dx, snake_dy, snake_length, snake_body, food_x, food_y, game_speed
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    snake_dx, snake_dy = 0, -20
+                if event.key == pygame.K_DOWN:
+                    snake_dx, snake_dy = 0, 20
+                if event.key == pygame.K_LEFT:
+                    snake_dx, snake_dy = -20, 0
+                if event.key == pygame.K_RIGHT:
+                    snake_dx, snake_dy = 20, 0
+
+        snake_x += snake_dx
+        snake_y += snake_dy
+
+        # Ha a kígyó eléri az ablak szélét, akkor a másik oldalon jelenik meg
+        if snake_x < 0:
+            snake_x = width - 20
+        elif snake_x >= width:
+            snake_x = 0
+        elif snake_y < 0:
+            snake_y = height - 20
+        elif snake_y >= height:
+            snake_y = 0
+
+        # Ellenőrizzük, hogy a kígyó ütközik-e saját testébe
+        if (snake_x, snake_y) in snake_body[:-1]:
             running = False
 
-    # Ablak háttérszínének beállítása
-    screen.fill(background_color)
+        snake_body.append((snake_x, snake_y))
 
-    # Itt hozzáadhatsz további rajzolási és logikai műveleteket
+        # Ellenőrizzük, hogy a kígyó megeszi-e az ételt
+        if pygame.Rect(snake_x, snake_y, 20, 20).colliderect(pygame.Rect(food_x, food_y, 20, 20)):
+            snake_length += 1
+            food_x, food_y = random.randint(0, width - 20), random.randint(0, height - 20)
 
-    # Frissítjük az ablakot
-    pygame.display.flip()
+        # A kígyó hosszát beállítjuk
+        if len(snake_body) > snake_length:
+            del snake_body[0]
 
-# Pygame leállítása
-pygame.quit()
+        # Ablak háttérszínének beállítása
+        screen.fill(background_color)
+
+        # Kígyó rajzolása
+        draw_snake(snake_body)
+
+        # Étel rajzolása
+        pygame.draw.rect(screen, food_color, pygame.Rect(food_x, food_y, 20, 20))
+
+        # Frissítjük az ablakot
+        pygame.display.flip()
+
+        # Várunk egy rövid ideig, hogy a játék sebessége ne legyen túl gyors
+        pygame.time.delay(game_speed)
+
+    pygame.quit()
+    sys.exit()
+
+if __name__ == "__main__":
+    main()
