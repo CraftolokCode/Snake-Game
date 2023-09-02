@@ -18,6 +18,7 @@ pygame.display.set_caption("Snake Játék")
 background_color = (0, 0, 0)  # Fekete háttérszín
 snake_color = (0, 255, 0)  # Zöld szín a kígyónak
 food_color = (255, 0, 0)  # Piros szín az ételnek
+text_color = (255, 255, 255)  # Fehér szín a szövegnek
 
 # Snake kezdeti pozíció
 snake_x, snake_y = width // 2, height // 2
@@ -33,14 +34,23 @@ snake_body = [(snake_x, snake_y)]
 food_x, food_y = random.randint(0, width - 20), random.randint(0, height - 20)
 
 # Játéksebesség
-game_speed = 75  # A zöld kocka sebessége most 50% -kal lassabb
+game_speed = 75  # A játék most 75 milliszekundumonként frissül
+
+# Pontszám számláló
+score = 0
+
+font = pygame.font.Font(None, 36)
 
 def draw_snake(snake_body):
     for segment in snake_body:
         pygame.draw.rect(screen, snake_color, pygame.Rect(segment[0], segment[1], 20, 20))
 
+def draw_score():
+    score_text = font.render(f"Pontszám: {score}", True, text_color)
+    screen.blit(score_text, (10, 10))
+
 def main():
-    global snake_x, snake_y, snake_dx, snake_dy, snake_length, snake_body, food_x, food_y, game_speed
+    global snake_x, snake_y, snake_dx, snake_dy, snake_length, snake_body, food_x, food_y, game_speed, score
 
     running = True
     while running:
@@ -80,6 +90,7 @@ def main():
         if pygame.Rect(snake_x, snake_y, 20, 20).colliderect(pygame.Rect(food_x, food_y, 20, 20)):
             snake_length += 1
             food_x, food_y = random.randint(0, width - 20), random.randint(0, height - 20)
+            score += 1
 
         # A kígyó hosszát beállítjuk
         if len(snake_body) > snake_length:
@@ -93,6 +104,9 @@ def main():
 
         # Étel rajzolása
         pygame.draw.rect(screen, food_color, pygame.Rect(food_x, food_y, 20, 20))
+
+        # Pontszám számláló rajzolása
+        draw_score()
 
         # Frissítjük az ablakot
         pygame.display.flip()
